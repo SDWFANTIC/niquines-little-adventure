@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<meta name="theme-color" content="#241638">
+<title>Niquine's Little Adventure 💗</title>
+<style>
+:root{--ink:#fff8ff;--muted:#e7d5ef;--pink:#ff83b8;--pink2:#ffb1d0;--panel:rgba(35,20,55,.78)}
+*{box-sizing:border-box}
+html,body{margin:0;min-height:100%;background:#171126;color:var(--ink);font-family:ui-rounded,"Trebuchet MS",system-ui,sans-serif}
+body{min-height:100svh;display:grid;place-items:center;padding:18px;overflow-x:hidden}
+button{font:inherit;cursor:pointer}
+.game-shell{width:min(100%,1000px);margin:auto}
+.topline{display:flex;justify-content:space-between;align-items:center;gap:12px;margin:0 4px 12px}
+.brand{font-weight:900;letter-spacing:.04em;font-size:clamp(15px,3vw,20px)}
+.brand span{color:var(--pink)}
+.hint{font-size:12px;color:#d9c8e5;text-align:right}
+.frame{position:relative;border:2px solid rgba(255,255,255,.2);border-radius:24px;overflow:hidden;box-shadow:0 24px 80px #080511aa;background:#31204a}
+canvas{display:block;width:100%;height:auto;aspect-ratio:16/9;touch-action:none}
+.hud{position:absolute;inset:14px 16px auto;display:flex;justify-content:space-between;align-items:flex-start;pointer-events:none;gap:10px}
+.pill{background:rgba(31,19,49,.72);border:1px solid #ffffff35;border-radius:999px;padding:8px 13px;font-size:13px;font-weight:800;backdrop-filter:blur(8px);box-shadow:0 5px 18px #140b2455}
+#hearts{color:#ffb4d1}
+.overlay{position:absolute;inset:0;display:grid;place-items:center;padding:22px;background:linear-gradient(135deg,rgba(24,14,39,.42),rgba(24,14,39,.72));}
+.panel{width:min(92%,510px);text-align:center;padding:clamp(20px,4vw,34px);border:1px solid #ffffff3b;border-radius:25px;background:var(--panel);backdrop-filter:blur(14px);box-shadow:0 16px 55px #10091d88}
+.kicker{color:#ffb5d2;text-transform:uppercase;letter-spacing:.2em;font-size:11px;font-weight:900}
+h1{font-size:clamp(28px,6vw,52px);line-height:1.02;margin:12px 0;color:#fff7fc;text-shadow:0 3px 20px #ff83b866}
+.panel p{color:#eadcf0;line-height:1.55;font-size:clamp(13px,2vw,16px);margin:12px auto 20px;max-width:390px}
+.primary{border:0;border-radius:999px;padding:13px 28px;background:linear-gradient(135deg,#ff83b8,#ffb1c9);color:#411c39;font-weight:1000;box-shadow:0 7px 22px #ff83b84a;transition:transform .15s}
+.primary:active{transform:scale(.97)}
+.small{font-size:11px;color:#cbb9d7;margin-top:14px}
+.controls{display:flex;justify-content:space-between;align-items:center;margin:12px 4px 0;gap:12px}
+.pad{display:flex;gap:10px}
+.ctrl{width:62px;height:52px;border:1px solid #ffffff3b;border-radius:16px;background:#ffffff16;color:white;font-size:23px;font-weight:900;touch-action:none;user-select:none;-webkit-user-select:none}
+.ctrl.jump{width:90px;background:#ff83b833;border-color:#ffb1d077;font-size:14px;letter-spacing:.04em}
+.control-note{font-size:11px;color:#cbb9d7;text-align:right;line-height:1.45}
+.hidden{display:none!important}
+@media (min-width:760px){.controls{opacity:.72}.ctrl{width:56px;height:46px}}
+@media (max-width:520px){body{padding:9px}.frame{border-radius:17px}.hud{inset:8px 9px auto}.pill{padding:6px 9px;font-size:11px}.ctrl{width:58px;height:50px}.ctrl.jump{width:82px}.controls{margin-top:9px}.hint{font-size:10px}}
+</style>
+</head>
+<body>
+<main class="game-shell">
+  <div class="topline">
+    <div class="brand">NIQUINE'S <span>♥</span> LITTLE ADVENTURE</div>
+    <div class="hint">A tiny world made just for you</div>
+  </div>
+  <div class="frame">
+    <canvas id="game" width="960" height="540" aria-label="A cute platform adventure game"></canvas>
+    <div class="hud hidden" id="hud">
+      <div class="pill" id="levelLabel">LEVEL 1 · THE BEGINNING</div>
+      <div class="pill" id="hearts">♥ 0 / 4</div>
+    </div>
+    <section class="overlay" id="welcome">
+      <div class="panel">
+        <div class="kicker">A little adventure for someone special</div>
+        <h1>Hi, Niquine! <span style="color:#ff91bd">♥</span></h1>
+        <p>There's a little world waiting for you. Collect the hearts, explore each level, and see what's waiting at the end.</p>
+        <button class="primary" id="start">LET'S PLAY ♥</button>
+        <div class="small">Made with love, just for you.</div>
+      </div>
+    </section>
+    <section class="overlay hidden" id="message">
+      <div class="panel">
+        <div class="kicker" id="messageKicker">A little note</div>
+        <h1 id="messageTitle">You found a heart!</h1>
+        <p id="messageText">Every little step is part of the adventure.</p>
+        <button class="primary" id="continue">KEEP GOING ♥</button>
+      </div>
+    </section>
+    <section class="overlay hidden" id="finish">
+      <div class="panel">
+        <div class="kicker">You made it!</div>
+        <h1>My favourite adventure is you. ♥</h1>
+        <p>You collected every heart and made it all the way through. I hope this made you smile. You make my world a little brighter every day, and I'm so grateful I get to do life with you.</p>
+        <p style="color:#ffb7d2;font-weight:900;margin-bottom:18px">Always remember how special you are. ❤️</p>
+        <button class="primary" id="again">PLAY AGAIN</button>
+        <div class="small">The end… or just the beginning? ✨</div>
+      </div>
+    </section>
+  </div>
+  <div class="controls">
+    <div class="pad">
+      <button class="ctrl" id="left" aria-label="Move left">←</button>
+      <button class="ctrl" id="right" aria-label="Move right">→</button>
+    </div>
+    <button class="ctrl jump" id="jump">JUMP ↑</button>
+    <div class="control-note">Keyboard: ← → or A / D<br>Jump: Space / ↑</div>
+  </div>
+</main>
+<script>
+(() => {
+const canvas=document.getElementById('game'),ctx=canvas.getContext('2d');
+const $=id=>document.getElementById(id);
+const W=960,H=540,worldW=2300,ground=458;
+const levels=[
+ {name:'THE BEGINNING',sky1:'#f7a9c9',sky2:'#6d5a9b',ground:'#46345f',platform:'#73517f',hearts:[[250,365],[570,300],[920,370],[1320,315]],notes:['Every beautiful story starts somewhere. ♥','One little step at a time.','You make ordinary days feel magical.','Keep going, lovely girl.']},
+ {name:'OUR LITTLE MEMORIES',sky1:'#9ac9d8',sky2:'#6279a9',ground:'#31566d',platform:'#477c8b',hearts:[[300,330],[690,270],[1080,350],[1570,285]],notes:['The little moments become the big memories.','I love laughing with you. ♥','More adventures are waiting for us.','You make the journey sweeter.']},
+ {name:'FOREVER & ALWAYS',sky1:'#f4b2a6',sky2:'#78517e',ground:'#44314f',platform:'#80556f',hearts:[[260,350],[650,285],[1080,330],[1610,270]],notes:['My favourite place is wherever you are.','Thank you for being you. ♥',"Here's to all the days still to come.",'One last heart…']}
+];
+const platforms=[
+ [[0,458,420,82],[490,390,170,18],[750,340,180,18],[1030,400,190,18],[1320,365,180,18],[1600,410,190,18],[1900,350,220,18]],
+ [[0,458,360,82],[430,390,190,18],[700,330,180,18],[990,385,200,18],[1290,340,180,18],[1580,390,210,18],[1900,345,220,18]],
+ [[0,458,350,82],[420,390,190,18],[710,340,180,18],[1000,390,190,18],[1300,335,190,18],[1600,380,200,18],[1900,345,220,18]]
+];
+let level=0,got=[],player={x:70,y:390,vx:0,vy:0,w:34,h:46,onGround:false,face:1};
+let camera=0,keys={},touch={left:false,right:false,jump:false},running=false,paused=false,last=0;
+function resetLevel(){got=[];player={x:70,y:390,vx:0,vy:0,w:34,h:46,onGround:false,face:1};camera=0;updateHud();}
+function updateHud(){$('levelLabel').textContent=`LEVEL ${level+1} · ${levels[level].name}`;$('hearts').textContent=`♥ ${got.length} / 4`;}
+function show(id){['welcome','message','finish'].forEach(x=>$(x).classList.toggle('hidden',x!==id));}
+function start(){level=0;resetLevel();$('hud').classList.remove('hidden');show('');running=true;last=performance.now();requestAnimationFrame(loop);}
+$('start').onclick=start;
+$('again').onclick=()=>start();
+function note(title,body,kicker='A little note'){ $('messageKicker').textContent=kicker;$('messageTitle').textContent=title;$('messageText').textContent=body;show('message');paused=true;}
+$('continue').onclick=()=>{show('');paused=false;last=performance.now();};
+function bindHold(id,key){const el=$(id);const down=e=>{e.preventDefault();touch[key]=true;};const up=e=>{e.preventDefault();touch[key]=false;};el.addEventListener('pointerdown',down);['pointerup','pointercancel','pointerleave'].forEach(ev=>el.addEventListener(ev,up));}
+bindHold('left','left');bindHold('right','right');bindHold('jump','jump');
+window.addEventListener('keydown',e=>{if(['ArrowLeft','ArrowRight','ArrowUp',' ','a','d','A','D','w','W'].includes(e.key))e.preventDefault();keys[e.key.toLowerCase()]=true;});
+window.addEventListener('keyup',e=>keys[e.key.toLowerCase()]=false);
+function rounded(x,y,w,h,r,color){ctx.fillStyle=color;ctx.beginPath();ctx.roundRect(x,y,w,h,r);ctx.fill();}
+function heart(x,y,s,color){ctx.save();ctx.translate(x,y);ctx.scale(s/32,s/32);ctx.fillStyle=color;ctx.beginPath();ctx.moveTo(0,10);ctx.bezierCurveTo(-34,-12,-17,-34,0,-18);ctx.bezierCurveTo(17,-34,34,-12,0,10);ctx.fill();ctx.restore();}
+function drawBackground(){const L=levels[level],g=ctx.createLinearGradient(0,0,0,H);g.addColorStop(0,L.sky1);g.addColorStop(1,L.sky2);ctx.fillStyle=g;ctx.fillRect(0,0,W,H);
+ // stars / sparkles
+ for(let i=0;i<45;i++){let x=((i*173-camera*.12)%(W+30)+W+30)%(W+30),y=35+(i*67%240);ctx.globalAlpha=.25+(i%4)*.12;ctx.fillStyle='#fff';ctx.beginPath();ctx.arc(x,y,(i%3)+1,0,Math.PI*2);ctx.fill();}ctx.globalAlpha=1;
+ // distant hills
+ for(let layer=0;layer<2;layer++){ctx.fillStyle=layer?'#40345f55':'#fff2';ctx.beginPath();ctx.moveTo(0,H);for(let x=-40;x<=W+50;x+=30){let y=330+layer*55+Math.sin((x+camera*(layer?.16:.08))/95)*34+Math.cos(x/47)*13;ctx.lineTo(x,y);}ctx.lineTo(W,H);ctx.fill();}
+ // floating clouds
+ for(let i=0;i<6;i++){let x=((i*210-camera*.25)%(W+160)+W+160)%(W+160)-60,y=85+(i%3)*55;ctx.fillStyle='#fff4';ctx.beginPath();ctx.arc(x,y,22,0,Math.PI*2);ctx.arc(x+25,y-10,28,0,Math.PI*2);ctx.arc(x+52,y,20,0,Math.PI*2);ctx.fill();}
+}
+function draw(){const L=levels[level];drawBackground();ctx.save();ctx.translate(-camera,0);
+ // ground
+ ctx.fillStyle=L.ground;ctx.fillRect(0,ground,worldW-ground/2,H-ground);
+ ctx.fillStyle='#ffffff22';for(let x=0;x<worldW;x+=70){ctx.fillRect(x,ground+18,28,4);}
+ // platforms
+ platforms[level].forEach(([x,y,w,h])=>{rounded(x,y,w,h,8,L.platform);rounded(x+5,y+3,w-10,5,3,'#ffffff40');});
+ // signs
+ [[510,390],[1320,365]].forEach(([x,y],i)=>{if(level===0){rounded(x+45,y-63,105,42,9,'#36294b99');ctx.fillStyle='#fff';ctx.font='12px system-ui';ctx.textAlign='center';ctx.fillText(i?'Keep going!':'You got this!',x+97,y-37);}});
+ // hearts
+ levels[level].hearts.forEach(([x,y],i)=>{if(!got.includes(i)){heart(x,y+Math.sin(performance.now()/350+i)*5,28,'#ffeff7');heart(x,y+Math.sin(performance.now()/350+i)*5,22,'#ff5e9e');}});
+ // exit portal
+ const portalX=2110;ctx.save();ctx.shadowColor='#ffd4ef';ctx.shadowBlur=25;ctx.strokeStyle='#ffe0f3';ctx.lineWidth=7;ctx.beginPath();ctx.ellipse(portalX,ground-47,31,47,0,0,Math.PI*2);ctx.stroke();ctx.fillStyle='#fff7';ctx.beginPath();ctx.ellipse(portalX,ground-47,22,38,0,0,Math.PI*2);ctx.fill();ctx.restore();
+ // player shadow
+ ctx.fillStyle='#20122b55';ctx.beginPath();ctx.ellipse(player.x+17,ground+2,22,5,0,0,Math.PI*2);ctx.fill();
+ // little character
+ const px=player.x,py=player.y;ctx.save();ctx.translate(px+17,py+22);if(player.face<0)ctx.scale(-1,1);
+ // hair
+ rounded(-13,-20,26,27,10,'#51334b');rounded(-14,-16,8,24,5,'#51334b');rounded(6,-15,9,22,5,'#51334b');
+ // face
+ rounded(-10,-15,20,21,8,'#ffd9c7');ctx.fillStyle='#51334b';ctx.beginPath();ctx.arc(-4,-6,1.7,0,7);ctx.arc(5,-6,1.7,0,7);ctx.fill();
+ ctx.strokeStyle='#c76d83';ctx.lineWidth=1.5;ctx.beginPath();ctx.arc(1,0,4,.2,2.6);ctx.stroke();
+ // body and shoes
+ rounded(-11,7,22,17,6,'#ff83b8');rounded(-12,20,10,5,3,'#f7e9ff');rounded(3,20,10,5,3,'#f7e9ff');
+ ctx.restore();ctx.restore();
+}
+function collide(a,b){return a.x<b.x+b.w&&a.x+a.w>b.x&&a.y<b.y+b.h&&a.y+a.h>b.y;}
+function update(dt){const left=keys['arrowleft']||keys['a']||touch.left,right=keys['arrowright']||keys['d']||touch.right,jump=keys[' ']||keys['arrowup']||keys['w']||touch.jump;
+ const speed=245;player.vx=(right?speed:0)-(left?speed:0);if(player.vx)player.face=Math.sign(player.vx);
+ if(jump&&player.onGround){player.vy=-620;player.onGround=false;}
+ const oldY=player.y;player.x+=player.vx*dt;player.x=Math.max(0,Math.min(worldW-player.w,player.x));player.vy+=1500*dt;player.y+=player.vy*dt;player.onGround=false;
+ const solids=platforms[level].map(([x,y,w,h])=>({x,y,w,h}));solids.push({x:0,y:ground,w:worldW,h:100});
+ for(const p of solids){if(player.vy>=0&&oldY+player.h<=p.y+8&&player.y+player.h>=p.y&&player.x+player.w>p.x&&player.x<p.x+p.w){player.y=p.y-player.h;player.vy=0;player.onGround=true;}}
+ if(player.y>H+100){player.x=Math.max(30,player.x-140);player.y=300;player.vy=0;}
+ levels[level].hearts.forEach(([x,y],i)=>{if(!got.includes(i)&&Math.abs((player.x+17)-x)<30&&Math.abs((player.y+20)-y)<35){got.push(i);updateHud();note('A heart for you ♥',levels[level].notes[i],'HEART COLLECTED');}});
+ camera=Math.max(0,Math.min(worldW-W,player.x-W*.34));
+ if(player.x>2080&&got.length===4){if(level<2){level++;resetLevel();note(level===1?'Level 2 unlocked!':'The final level!','You found every heart. A new little world is waiting for you.','LEVEL COMPLETE');}else{running=false;$('hud').classList.add('hidden');show('finish');}}}
+function loop(t){if(!running)return;const dt=Math.min((t-last)/1000,.033);last=t;if(!paused)update(dt);draw();requestAnimationFrame(loop);}
+draw();
+})();
+</script>
+</body>
+</html>
